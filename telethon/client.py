@@ -7,7 +7,7 @@ import argparse
 # TODO (add ) apply changes to db (chat id column)
 # TODO (add table with chat list) add info about channels
 
-def init_config(config_file = 'config.ini'):
+def init_config(config_file = '../config.ini'):
     config = configparser.ConfigParser()
     config.read(config_file)
     # config = database.get_configuration('pars2022')
