@@ -34,6 +34,7 @@ async def main():
         # "me" refers to your own chat (Saved Messages)
         async for message in app.get_chat_history("me", limit=1):
             await app.send_message("me", "What we shold do with this message?", reply_to_message_id=message.id)
+            await (await app.get_chat("me")).mark_unread()
             # await message.reply("What we shold do with this message?")
         message_count = await app.get_chat_history_count("me")
         message_ids = list()
@@ -52,6 +53,11 @@ async def main():
         # for entity in message.entities:
         #     if entity.type is enums.MessageEntityType.HASHTAG:
         #         print(message.text[entity.offset:entity.offset+entity.length])
+        me_chat = await app.get_chat("me")
+        print(me_chat)
+        # print(me_chat.pinned_message.text)
+        async for message in app.search_messages("me", filter=enums.MessagesFilter.PINNED):
+            print(message)
 
 
 config = init_config()
