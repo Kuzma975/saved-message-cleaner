@@ -28,36 +28,58 @@ def init_client(config, config_section = 'dev'):
     #         client.sign_in(password=input('Password: '))
     return client
 
+def count_hashtags(message):
+    count = 0
+    if message.entities:
+        for entity in message.entities:
+            if entity.type is enums.MessageEntityType.HASHTAG:
+                count += 1
+    return count
 
+action_text = "\n * '✍' - 'keep'\n * '🙈' - 'delete'\n * '🤷' - 'nothing'"
 async def main():
     async with app:
         # "me" refers to your own chat (Saved Messages)
         async for message in app.get_chat_history("me", limit=1):
-            await app.send_message("me", "What we shold do with this message?", reply_to_message_id=message.id)
-            await (await app.get_chat("me")).mark_unread()
+            print(message)
+            print(f'Hashtags in the message: {count_hashtags(message)}')
+        #     await app.send_message("me", f'What we shold do with this message?{action_text}', reply_to_message_id=message.id)
+        #     await (await app.get_chat("me")).mark_unread()
             # await message.reply("What we shold do with this message?")
         message_count = await app.get_chat_history_count("me")
         message_ids = list()
         async for message in app.get_chat_history("me"):
             message_ids.append(message.id)
+            if message.web_page:
+                print(f'Site name is: {message.web_page.site_name}')
         
         # async for message in app.get_chat_history("me", offset_id=2, limit=1):
         #     print(message, end='\n')
         print(message_count)
         print(message_ids)
-        random_message_id = random.choice(message_ids)
-        message = await app.get_messages("me", random_message_id)
-        print(message.text)
+
+        ### get random message
+        # random_message_id = random.choice(message_ids)
+        # message = await app.get_messages("me", random_message_id)
+        # print(message.text)
+
+        ### reply for a random message
         # await app.send_message("me", "this is a reply", reply_to_message_id=random_message_id)
         # message = next(messages)
+
+        ### Get HASHTAG from message
         # for entity in message.entities:
         #     if entity.type is enums.MessageEntityType.HASHTAG:
         #         print(message.text[entity.offset:entity.offset+entity.length])
-        me_chat = await app.get_chat("me")
-        print(me_chat)
-        # print(me_chat.pinned_message.text)
-        async for message in app.search_messages("me", filter=enums.MessagesFilter.PINNED):
-            print(message)
+
+        ### Get chat with "me"
+        # me_chat = await app.get_chat("me")
+        # print(me_chat)
+        # print(me_chat.pinned_message.text) # print latest pinned message
+
+        ### find all pinned messages
+        # async for message in app.search_messages("me", filter=enums.MessagesFilter.PINNED):
+        #         print(message)
 
 
 config = init_config()
@@ -70,6 +92,7 @@ emoji = {
     '🔥': '',
     '🙈': 'delete',
     '🤷': 'nothing',
+    '💊': 'split',
 }
 # app.run(main())
 app.run(main())
@@ -79,7 +102,7 @@ async def message_hendler(client, message):
     print(message)
 
 @app.on_edited_message(filters.chat("me"))
-async def scrap_reaction(client, message):
+async def handle_reaction(client, message):
     print(f'message are income {message}')
     if message.reactions:
         action = emoji[message.reactions.reactions[0].emoji]
@@ -95,4 +118,5 @@ async def scrap_reaction(client, message):
         else:
             print(f'{action} not implemented for reaction {emoji[message.reactions.reactions[0].emoji]}')
     # print(message.reactions.reactions[0].emoji)
-app.run()
+### start handling messages
+# app.run()
