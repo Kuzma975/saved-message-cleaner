@@ -78,7 +78,7 @@ async def main():
         # print(me_chat.pinned_message.text) # print latest pinned message
 
         ### find all pinned messages
-        # async for message in app.search_messages("me", filter=enums.MessagesFilter.PINNED):
+        # async for message in app.search_messages("me", filter=enums.MessagesFilter.PINNED): # URL MENTION PHOTO
         #         print(message)
 
 
