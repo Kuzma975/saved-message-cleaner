@@ -3,7 +3,9 @@
 from pyrogram import Client, enums
 from pyrogram import filters
 import configparser
+import argparse
 import random
+import time
 
 def init_config(config_file = '../config.ini'):
     config = configparser.ConfigParser()
@@ -77,13 +79,29 @@ async def main():
         # print(me_chat)
         # print(me_chat.pinned_message.text) # print latest pinned message
 
+        print(f'Count messages with URL: {await app.search_messages_count("me", filter=enums.MessagesFilter.URL)}')
+        count = 0
+        async for message in app.search_messages("me", filter=enums.MessagesFilter.URL):
+            count += 1
+            print(f'{count}:')
+            print(message.text)
+            time.sleep(20)
         ### find all pinned messages
         # async for message in app.search_messages("me", filter=enums.MessagesFilter.PINNED): # URL MENTION PHOTO
         #         print(message)
 
-
 config = init_config()
-app = init_client(config)
+
+parser = argparse.ArgumentParser(description='Get message from channels.')
+# config_group = parser.add_mutually_exclusive_group()
+parser.add_argument('--environment', '-e', choices=config.sections(), default='dev', action='store', help='Specify environment.')
+parser.add_argument('--list-config', '-lc', action='store_true', help='List all configuration.')
+args = parser.parse_args()
+if args.list_config:
+    print(args)
+    print(config.sections())
+
+app = init_client(config, args.environment)
 emoji = {
     '👍': '',
     '✍': 'keep',
