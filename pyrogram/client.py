@@ -2,6 +2,7 @@
 
 from pyrogram import Client, enums
 from pyrogram import filters
+from urllib.parse import urlparse
 import configparser
 import argparse
 import random
@@ -30,11 +31,11 @@ def init_client(config, config_section = 'dev'):
     #         client.sign_in(password=input('Password: '))
     return client
 
-def count_hashtags(message):
+def count_entity(message, *ent):
     count = 0
     if message.entities:
         for entity in message.entities:
-            if entity.type is enums.MessageEntityType.HASHTAG:
+            if entity.type in ent:
                 count += 1
     return count
 
@@ -44,7 +45,7 @@ async def main():
         # "me" refers to your own chat (Saved Messages)
         async for message in app.get_chat_history("me", limit=1):
             print(message)
-            print(f'Hashtags in the message: {count_hashtags(message)}')
+            print(f'Hashtags in the message: {count_entity(message, enums.MessageEntityType.HASHTAG)}')
         #     await app.send_message("me", f'What we shold do with this message?{action_text}', reply_to_message_id=message.id)
         #     await (await app.get_chat("me")).mark_unread()
             # await message.reply("What we shold do with this message?")
@@ -84,8 +85,27 @@ async def main():
         async for message in app.search_messages("me", filter=enums.MessagesFilter.URL):
             count += 1
             print(f'{count}:')
+            url_entities_count = count_entity(message, enums.MessageEntityType.URL, enums.MessageEntityType.TEXT_LINK)
+            print(f'URL entity count: {url_entities_count}')
+            if url_entities_count > 1:
+                print('Need to split (💊)')
+            else:
+                # print(message.entities)
+                for entity in message.entities:
+                    # print(entity)
+                    if entity.type in [enums.MessageEntityType.URL, enums.MessageEntityType.TEXT_LINK]:
+                        url = message.text[entity.offset:entity.offset+entity.length]
+                        # print(f'Url is {url}')
+                        parsed_url = urlparse(url)
+                        # print(f'Parsed url: {parsed_url}')
+                        if parsed_url.scheme == 'tg' or parsed_url.netloc ==  't.me':
+                            print('This is Telegram url')
+                        elif parsed_url.netloc == 'youtube.com' or parsed_url.netloc == 'www.youtube.com':
+                            print('This is Youtube url')
             print(message.text)
-            time.sleep(20)
+
+            # print(message)
+            time.sleep(2)
         ### find all pinned messages
         # async for message in app.search_messages("me", filter=enums.MessagesFilter.PINNED): # URL MENTION PHOTO
         #         print(message)
