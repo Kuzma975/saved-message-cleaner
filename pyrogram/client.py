@@ -1,35 +1,10 @@
 #!python
 
-from pyrogram import Client, enums
-from pyrogram import filters
+from pyrogram import enums
 from urllib.parse import urlparse
-import configparser
-import argparse
+import configure
 import random
 import time
-
-def init_config(config_file = '../config.ini'):
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    # config = database.get_configuration('pars2022')
-    return config
-
-def init_client(config, config_section = 'dev'):
-    print('initiate client')
-    client = Client(
-        config[config_section]['session_file'],
-        api_id=config[config_section]['api_id'],
-        api_hash=config[config_section]['api_hash'],
-        phone_number=config[config_section]['phone']
-        )
-    # client.start()
-    # if not client.is_user_authorized():
-    #     client.send_code_request(config[config_section]['phone'])
-    #     try:
-    #         client.sign_in(config[config_section]['phone'], input('Enter the code: '))
-    #     except SessionPasswordNeededError:
-    #         client.sign_in(password=input('Password: '))
-    return client
 
 def count_entity(message, *ent):
     count = 0
@@ -110,51 +85,6 @@ async def main():
         # async for message in app.search_messages("me", filter=enums.MessagesFilter.PINNED): # URL MENTION PHOTO
         #         print(message)
 
-config = init_config()
+app = configure.init_app()
 
-parser = argparse.ArgumentParser(description='Get message from channels.')
-# config_group = parser.add_mutually_exclusive_group()
-parser.add_argument('--environment', '-e', choices=config.sections(), default='dev', action='store', help='Specify environment.')
-parser.add_argument('--list-config', '-lc', action='store_true', help='List all configuration.')
-args = parser.parse_args()
-if args.list_config:
-    print(args)
-    print(config.sections())
-
-app = init_client(config, args.environment)
-emoji = {
-    '👍': '',
-    '✍': 'keep',
-    '👎': '',
-    '💩': '',
-    '🔥': '',
-    '🙈': 'delete',
-    '🤷': 'nothing',
-    '💊': 'split',
-}
-# app.run(main())
 app.run(main())
-
-@app.on_message()
-async def message_hendler(client, message):
-    print(message)
-
-@app.on_edited_message(filters.chat("me"))
-async def handle_reaction(client, message):
-    print(f'message are income {message}')
-    if message.reactions:
-        action = emoji[message.reactions.reactions[0].emoji]
-        if action == 'delete':
-            print(message)
-            await client.delete_messages(chat_id=message.chat.id, message_ids=[message.id, message.reply_to_message_id])
-        elif action == 'keep':
-            print(message)
-            await message.reply_to_message.react(emoji="✍")
-            await message.delete()
-        elif action == 'nothing':
-            await message.delete()
-        else:
-            print(f'{action} not implemented for reaction {emoji[message.reactions.reactions[0].emoji]}')
-    # print(message.reactions.reactions[0].emoji)
-### start handling messages
-# app.run()
