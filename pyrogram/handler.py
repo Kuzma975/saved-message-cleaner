@@ -32,6 +32,7 @@ async def handle_reaction(client, message):
                 action = emoji[message.reactions.reactions[0].emoji]
             else:
                 print(f'Emoji not yet implemented {message.reactions.reactions[0].emoji}')
+                return
             if action == 'delete':
                 print(message)
                 await client.delete_messages(chat_id=message.chat.id, message_ids=[message.id, message.reply_to_message_id])

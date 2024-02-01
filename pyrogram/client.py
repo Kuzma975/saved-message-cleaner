@@ -14,7 +14,14 @@ def count_entity(message, *ent):
                 count += 1
     return count
 
-action_text = "\n * '✍' - 'keep'\n * '🙈' - 'delete'\n * '🤷' - 'nothing'"
+def get_entity(message, *ent):
+    e_list = list()
+    for entity in message.entities:
+        if entity.type in ent:
+            e_list.append(message.text[entity.offset:entity.offset+entity.length])
+    return e_list
+
+action_text = "\n * '✍' - 'keep'\n * '🙈' - 'delete'\n * '🤷' - 'nothing'\n * '💊' - 'split'"
 async def main():
     async with app:
         # "me" refers to your own chat (Saved Messages)
@@ -46,9 +53,7 @@ async def main():
         # message = next(messages)
 
         ### Get HASHTAG from message
-        # for entity in message.entities:
-        #     if entity.type is enums.MessageEntityType.HASHTAG:
-        #         print(message.text[entity.offset:entity.offset+entity.length])
+        # print(get_entity(message, enums.MessageEntityType.HASHTAG))
 
         ### Get chat with "me"
         # me_chat = await app.get_chat("me")
