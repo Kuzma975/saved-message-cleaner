@@ -3,7 +3,7 @@
 from pyrogram import filters
 import configure
 
-app = configure.init_app()
+app, filters = configure.init_app()
 
 emoji = {
     '👍': '',
