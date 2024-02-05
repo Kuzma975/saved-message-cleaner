@@ -3,7 +3,7 @@
 from pyrogram import filters
 import configure
 
-app, filters = configure.init_app()
+app, fltrs = configure.init_app()
 
 emoji = {
     '👍': '',
@@ -16,9 +16,20 @@ emoji = {
     '💊': 'split',
 }
 
-@app.on_message()
+@app.on_message(filters.chat("me") & filters.reply & filters.command('keep'))
 async def message_hendler(client, message):
     print(message)
+    await message.reply_to_message.react(emoji="✍") # NOTE fucking durov broke react in the saved messages need to rework concept
+    await message.delete()
+
+@app.on_message(filters.chat("me") & filters.reply & filters.command('delete'))
+async def message_hendler(client, message):
+    print(message)
+    await client.delete_messages(chat_id=message.chat.id, message_ids=[message.id, message.reply_to_message_id])
+
+@app.on_message(filters.chat("me") & filters.reply & filters.command('nothing'))
+async def message_hendler(client, message):
+    await message.delete()
 
 @app.on_edited_message(filters.chat("me"))
 async def handle_reaction(client, message):
