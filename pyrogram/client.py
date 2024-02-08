@@ -1,12 +1,17 @@
 #!python
 
-from pyrogram import enums
-from urllib.parse import urlparse
-import configure
-import random
+"""Module to handle saved messages"""
+
 import time
+# import random
+from urllib.parse import urlparse
+
+from pyrogram import enums
+
+import configure
 
 def count_domains(d, netloc):
+    """Return list with count of domains"""
     for item in netloc.split('.'):
         if d.get(item):
             d[item] += 1
@@ -15,6 +20,7 @@ def count_domains(d, netloc):
     return d
 
 def count_entity(message, *ent):
+    """Return count of specific entities"""
     count = 0
     if message.entities:
         for entity in message.entities:
@@ -23,29 +29,33 @@ def count_entity(message, *ent):
     return count
 
 def get_entities(message, *ent):
-    e_list = list()
+    """Return list of specific entities from the message"""
+    e_list = []
     for entity in message.entities:
         if entity.type in ent:
             e_list.append(message.text[entity.offset:entity.offset+entity.length])
     return e_list
 
-action_text = "\n * '✍' - 'keep'\n * '🙈' - 'delete'\n * '🤷' - 'nothing'\n * '💊' - 'split'"
+ACTION_TEXT = "\n * '✍' - 'keep'\n * '🙈' - 'delete'\n * '🤷' - 'nothing'\n * '💊' - 'split'"
 async def main():
+    """Main function which will handle messsages"""
     async with app:
         # "me" refers to your own chat (Saved Messages)
         async for message in app.get_chat_history("me", offset_id=26, limit=2):
             print(message)
-            print(f'Hashtags in the message: {count_entity(message, enums.MessageEntityType.HASHTAG)}')
-        #     await app.send_message("me", f'What we shold do with this message?{action_text}', reply_to_message_id=message.id)
+            count_of_hashtags = count_entity(message, enums.MessageEntityType.HASHTAG)
+            print(f'Hashtags in the message: {count_of_hashtags}')
+        #     await app.send_message(
+        #       "me", f'What we shold do with this message?{ACTION_TEXT}',
+        #       reply_to_message_id=message.id)
         #     await (await app.get_chat("me")).mark_unread()
             # await message.reply("What we shold do with this message?")
         message_count = await app.get_chat_history_count("me")
-        message_ids = list()
+        message_ids = []
         async for message in app.get_chat_history("me"):
             message_ids.append(message.id)
             if message.web_page:
                 print(f'Site name is: {message.web_page.site_name}')
-        
         # async for message in app.get_chat_history("me", offset_id=2, limit=1):
         #     print(message, end='\n')
         print(message_count)
@@ -68,13 +78,16 @@ async def main():
         # print(me_chat)
         # print(me_chat.pinned_message.text) # print latest pinned message
 
-        print(f'Count messages with URL: {await app.search_messages_count("me", filter=enums.MessagesFilter.URL)}')
+        count_of_urls = await app.search_messages_count("me", filter=enums.MessagesFilter.URL)
+        print(f'Count messages with URL: {count_of_urls}')
         count = 0
-        domain_dict = dict()
+        domain_dict = {}
         async for message in app.search_messages("me", filter=enums.MessagesFilter.URL):
             count += 1
             print(f'{count}:')
-            url_entities_count = count_entity(message, enums.MessageEntityType.URL, enums.MessageEntityType.TEXT_LINK)
+            url_entities_count = count_entity(message,
+                                              enums.MessageEntityType.URL,
+                                              enums.MessageEntityType.TEXT_LINK)
             print(f'URL entity count: {url_entities_count}')
             if url_entities_count > 1:
                 print('Need to split (💊)')
@@ -82,15 +95,16 @@ async def main():
                 # print(message.entities)
                 for entity in message.entities:
                     # print(entity)
-                    if entity.type in [enums.MessageEntityType.URL, enums.MessageEntityType.TEXT_LINK]:
+                    if entity.type in [enums.MessageEntityType.URL,
+                                       enums.MessageEntityType.TEXT_LINK]:
                         url = message.text[entity.offset:entity.offset+entity.length]
                         # print(f'Url is {url}')
                         parsed_url = urlparse(url)
                         domain_dict = count_domains(domain_dict, parsed_url.netloc)
                         # print(f'Parsed url: {parsed_url}')
-                        if parsed_url.scheme == 'tg' or parsed_url.netloc ==  't.me':
+                        if parsed_url.scheme == 'tg' or parsed_url.netloc == 't.me':
                             print('This is Telegram url')
-                        elif parsed_url.netloc == 'youtube.com' or parsed_url.netloc == 'www.youtube.com':
+                        elif parsed_url.netloc in ('youtube.com', 'www.youtube.com'):
                             print('This is Youtube url')
             print(message.text)
 
@@ -98,7 +112,8 @@ async def main():
             time.sleep(2)
         print(domain_dict)
         ### find all pinned messages
-        # async for message in app.search_messages("me", filter=enums.MessagesFilter.PINNED): # URL MENTION PHOTO
+        # URL MENTION PHOTO
+        # async for message in app.search_messages("me", filter=enums.MessagesFilter.PINNED):
         #         print(message)
 
 app, filters = configure.init_app()
